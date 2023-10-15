@@ -7,21 +7,37 @@
 //----------------------------------------------------------------------
 SDL_Window *window{nullptr};
 SDL_Renderer *renderer{nullptr};
+bool running{false};
 
+//----------------------------------------------------------------------
 bool OnInit();
 void OnError(std::string);
-void OnClean();
+void OnCleanUp();
+void OnLoop();
+void OnEvent(SDL_Event *Event);
+void OnDraw();
 
 //----------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
 
+    running = true;
+
     if (OnInit() == false)
     {
         return -1;
     }
+    OnDraw();
+    OnLoop();
+    OnCleanUp();
+    return 0;
+}
 
-    if(SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255) != 0)
+//----------------------------------------------------------------------
+void OnDraw()
+{
+    SDL_RenderClear(renderer);
+    if (SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255) != 0)
     {
         OnError("Impossible de changer la couleur du rendu");
     }
@@ -36,17 +52,41 @@ int main(int argc, char *argv[])
         OnError("Impossible de changer la couleur du rendu");
     }
 
-    SDL_Rect rectangle{300,300,200,150};
+    SDL_Rect rectangle{300, 300, 200, 150};
     if (SDL_RenderFillRect(renderer, &rectangle) != 0)
     {
         OnError("Impossible de dessiner");
     }
 
     SDL_RenderPresent(renderer);
-    SDL_Delay(3000);
+}
 
-    OnClean();
-    return 0;
+//----------------------------------------------------------------------
+void OnEvent(SDL_Event *Event)
+{
+    switch (Event->type)
+    {
+
+    case SDL_QUIT:
+        running = false;
+        break;
+
+    default:
+        break;
+    }
+}
+
+//----------------------------------------------------------------------
+void OnLoop()
+{
+    SDL_Event Event;
+    while (running)
+    {
+        while (SDL_PollEvent(&Event))
+        {
+            OnEvent(&Event);
+        }
+    }
 }
 
 //----------------------------------------------------------------------
@@ -74,7 +114,7 @@ bool OnInit()
 }
 
 //----------------------------------------------------------------------
-void OnClean()
+void OnCleanUp()
 {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -85,6 +125,6 @@ void OnClean()
 void OnError(std::string s)
 {
     std::cout << "Erreur : " << s << " > " << SDL_GetError() << std::endl;
-    OnClean();
+    OnCleanUp();
 }
 //----------------------------------------------------------------------
