@@ -16,6 +16,7 @@ void OnCleanUp();
 void OnLoop();
 void OnEvent(SDL_Event *Event);
 void OnDraw();
+void OnRender();
 
 //----------------------------------------------------------------------
 int main(int argc, char *argv[])
@@ -34,9 +35,16 @@ int main(int argc, char *argv[])
 }
 
 //----------------------------------------------------------------------
-void OnDraw()
+void OnRender()
 {
     SDL_RenderClear(renderer);
+    OnDraw();
+    SDL_RenderPresent(renderer);
+}
+
+//----------------------------------------------------------------------
+void OnDraw()
+{    
     if (SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255) != 0)
     {
         OnError("Impossible de changer la couleur du rendu");
@@ -58,7 +66,6 @@ void OnDraw()
         OnError("Impossible de dessiner");
     }
 
-    SDL_RenderPresent(renderer);
 }
 
 //----------------------------------------------------------------------
@@ -66,7 +73,6 @@ void OnEvent(SDL_Event *Event)
 {
     switch (Event->type)
     {
-
     case SDL_QUIT:
         running = false;
         break;
@@ -104,6 +110,7 @@ bool OnInit()
         OnError("Creation de la fenetre a echouee");
         return false;
     }
+
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
     {
