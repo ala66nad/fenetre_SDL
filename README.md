@@ -7,7 +7,7 @@ Créer un répertoire bin (mkdir bin)
 Sources :  
 SDL2                    => https://www.libsdl.org/  
 zip SDL2                => https://github.com/libsdl-org/SDL/releases  
-MinGW-w64 for windos    => https://winlibs.com/  
+MinGW-w64 for windows    => https://winlibs.com/  
 
 
 ## Initialisation de la SDL
