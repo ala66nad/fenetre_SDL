@@ -3,6 +3,7 @@
 Créer un répertoire sdl (mkdir sdl)  
 Copie le contenu du fichier SDL2-devel-x.x.x-mingw.zip dans répertoire sdl  
 Créer un répertoire bin (mkdir bin)  
+Copier SDL2.dll dans le répertoire bin  
 
 Sources :  
 SDL2                    => https://www.libsdl.org/  
