@@ -1,13 +1,23 @@
 #include <SDL.h>
 #include <iostream>
 #include <string>
+#include <array>
 
 #define UNHEX(c) ((c >> 8 * 3) & 0xFF), ((c >> 8 * 2) & 0xFF), ((c >> 8 * 1) & 0xFF), ((c >> 8 * 0) & 0xFF)
+
+typedef struct Position
+{
+    int x;
+    int y;
+} Position;
 
 //----------------------------------------------------------------------
 SDL_Window *window{nullptr};
 SDL_Renderer *renderer{nullptr};
+SDL_Rect backGround{0, 0, 800, 640};
 bool running{false};
+int _limitR{0};
+std::array<int, 4> _fps_limit{1000 / 20, 1000 / 30, 1000 / 60, 1000 / 90};
 
 //----------------------------------------------------------------------
 bool OnInit();
@@ -15,37 +25,46 @@ void OnError(std::string);
 void OnCleanUp();
 void OnLoop();
 void OnEvent(SDL_Event *Event);
-void OnDraw();
-void OnRender();
+void OnDraw(SDL_Rect rectangle);
+void OnRender(SDL_Rect rectangle);
+void LimitFPS(uint32_t limit);
+void OnKeyUp(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode);
+void OnKeyDown(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode);
 
 //----------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-
     running = true;
-
     if (OnInit() == false)
     {
         return -1;
-    }
-    OnRender();
+    }    
     OnLoop();
     OnCleanUp();
     return 0;
 }
 
 //----------------------------------------------------------------------
-void OnRender()
+void OnRender(SDL_Rect rectangle)
 {
     SDL_RenderClear(renderer);
-    OnDraw();
+    OnDraw(rectangle);
     SDL_RenderPresent(renderer);
 }
 
 //----------------------------------------------------------------------
-void OnDraw()
-{    
-    if (SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255) != 0)
+void OnDraw(SDL_Rect rectangle)
+{
+    if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) != 0)
+    {
+        OnError("Impossible de changer la couleur du rendu");
+    }
+    if (SDL_RenderFillRect(renderer, &backGround) != 0)
+    {
+        OnError("Impossible de dessiner");
+    }
+
+    if (SDL_SetRenderDrawColor(renderer, 255,255,0,255) != 0)
     {
         OnError("Impossible de changer la couleur du rendu");
     }
@@ -55,12 +74,11 @@ void OnDraw()
         OnError("Impossible de dessiner");
     }
 
-    if (SDL_SetRenderDrawColor(renderer, UNHEX(0xFF00EEFF)) != 0)
+    if (SDL_SetRenderDrawColor(renderer, UNHEX(0xFF88EEFF)) != 0)
     {
         OnError("Impossible de changer la couleur du rendu");
     }
 
-    SDL_Rect rectangle{300, 300, 200, 150};
     if (SDL_RenderFillRect(renderer, &rectangle) != 0)
     {
         OnError("Impossible de dessiner");
@@ -73,6 +91,17 @@ void OnEvent(SDL_Event *Event)
 {
     switch (Event->type)
     {
+    case SDL_KEYDOWN:
+    {
+        OnKeyDown(Event->key.keysym.sym, Event->key.keysym.mod, Event->key.keysym.scancode);
+        break;
+    }
+
+    case SDL_KEYUP:
+    {
+        OnKeyUp(Event->key.keysym.sym, Event->key.keysym.mod, Event->key.keysym.scancode);
+        break;
+    }
     case SDL_QUIT:
         running = false;
         break;
@@ -83,8 +112,32 @@ void OnEvent(SDL_Event *Event)
 }
 
 //----------------------------------------------------------------------
+void OnKeyDown(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode)
+{
+    switch (sym)
+    {
+    case SDLK_KP_PLUS:
+        _limitR = _limitR < std::size(_fps_limit) - 1 ? _limitR + 1 : 0;
+        break;
+
+    default:
+        break;
+    }
+}
+
+//----------------------------------------------------------------------
+void OnKeyUp(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode)
+{
+    // do nothing
+}
+
+//----------------------------------------------------------------------
 void OnLoop()
 {
+    Position p;
+    SDL_Rect rectangle{300, 300, 200, 150};
+    rectangle.x = 50;
+    uint32_t frame_limit = 0;
     SDL_Event Event;
     while (running)
     {
@@ -92,6 +145,11 @@ void OnLoop()
         {
             OnEvent(&Event);
         }
+        frame_limit = SDL_GetTicks() + _fps_limit[_limitR];
+        OnRender(rectangle);
+        LimitFPS(frame_limit);
+        rectangle.x++;
+
     }
 }
 
@@ -104,7 +162,7 @@ bool OnInit()
         return false;
     }
 
-    window = SDL_CreateWindow("Ma fenetre", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 640, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Ma fenetre", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, backGround.w, backGround.h, SDL_WINDOW_SHOWN);
     if (window == NULL)
     {
         OnError("Creation de la fenetre a echouee");
@@ -118,6 +176,18 @@ bool OnInit()
         return false;
     }
     return true;
+}
+
+//----------------------------------------------------------------------
+void LimitFPS(uint32_t limit)
+{
+    uint32_t ticks = SDL_GetTicks();
+    if (limit < ticks)
+        return;
+    if (limit > ticks + _fps_limit[_limitR])
+        SDL_Delay(_fps_limit[_limitR]);
+    else
+        SDL_Delay(limit - ticks);
 }
 
 //----------------------------------------------------------------------
