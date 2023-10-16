@@ -5,17 +5,11 @@
 
 #define UNHEX(c) ((c >> 8 * 3) & 0xFF), ((c >> 8 * 2) & 0xFF), ((c >> 8 * 1) & 0xFF), ((c >> 8 * 0) & 0xFF)
 
-typedef struct Position
-{
-    int x;
-    int y;
-} Position;
-
 //----------------------------------------------------------------------
 SDL_Window *window{nullptr};
 SDL_Renderer *renderer{nullptr};
 SDL_Rect backGround{0, 0, 800, 640};
-bool running{false};
+bool running{true};
 int _limitR{0};
 std::array<int, 4> _fps_limit{1000 / 20, 1000 / 30, 1000 / 60, 1000 / 90};
 
@@ -33,8 +27,7 @@ void OnKeyDown(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode);
 
 //----------------------------------------------------------------------
 int main(int argc, char *argv[])
-{
-    running = true;
+{    
     if (OnInit() == false)
     {
         return -1;
@@ -133,10 +126,8 @@ void OnKeyUp(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode)
 
 //----------------------------------------------------------------------
 void OnLoop()
-{
-    Position p;
-    SDL_Rect rectangle{300, 300, 200, 150};
-    rectangle.x = 50;
+{    
+    SDL_Rect rectangle{50, 300, 200, 150};
     uint32_t frame_limit = 0;
     SDL_Event Event;
     while (running)
