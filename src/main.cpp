@@ -1,4 +1,4 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <iostream>
 #include <string>
 #include <array>
@@ -10,7 +10,7 @@ SDL_Window *window{nullptr};
 SDL_Renderer *renderer{nullptr};
 SDL_Rect backGround{0, 0, 800, 640};
 bool running{true};
-int _limitR{0};
+int _limitR{0}, _x{50}, _y{300};
 std::array<int, 4> _fps_limit{1000 / 20, 1000 / 30, 1000 / 60, 1000 / 90};
 
 //----------------------------------------------------------------------
@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
 //----------------------------------------------------------------------
 void OnRender(SDL_Rect rectangle)
 {
+    if (SDL_SetRenderDrawColor(renderer, 33, 33, 33, 255) != 0)
+        OnError("Impossible de changer la couleur du rendu");    
     SDL_RenderClear(renderer);
     OnDraw(rectangle);
     SDL_RenderPresent(renderer);
@@ -48,15 +50,6 @@ void OnRender(SDL_Rect rectangle)
 //----------------------------------------------------------------------
 void OnDraw(SDL_Rect rectangle)
 {
-    if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255) != 0)
-    {
-        OnError("Impossible de changer la couleur du rendu");
-    }
-    if (SDL_RenderFillRect(renderer, &backGround) != 0)
-    {
-        OnError("Impossible de dessiner");
-    }
-
     if (SDL_SetRenderDrawColor(renderer, 255,255,0,255) != 0)
     {
         OnError("Impossible de changer la couleur du rendu");
@@ -112,7 +105,18 @@ void OnKeyDown(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode)
     case SDLK_KP_PLUS:
         _limitR = _limitR < std::size(_fps_limit) - 1 ? _limitR + 1 : 0;
         break;
-
+    case SDLK_RIGHT:
+        _x +=3;
+        break;
+    case SDLK_LEFT:
+        _x -= 3;
+        break;
+    case SDLK_UP:
+        _y -= 3;
+        break;
+    case SDLK_DOWN:
+        _y += 3;
+        break;
     default:
         break;
     }
@@ -127,7 +131,7 @@ void OnKeyUp(SDL_Keycode sym, SDL_Keycode mod, SDL_Keycode scancode)
 //----------------------------------------------------------------------
 void OnLoop()
 {    
-    SDL_Rect rectangle{50, 300, 200, 150};
+    SDL_Rect rectangle{_x, _y, 200, 150};
     uint32_t frame_limit = 0;
     SDL_Event Event;
     while (running)
@@ -139,8 +143,8 @@ void OnLoop()
         frame_limit = SDL_GetTicks() + _fps_limit[_limitR];
         OnRender(rectangle);
         LimitFPS(frame_limit);
-        rectangle.x++;
-
+        rectangle.x = _x;
+        rectangle.y = _y;
     }
 }
 
